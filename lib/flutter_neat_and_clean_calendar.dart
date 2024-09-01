@@ -71,6 +71,7 @@ class Range {
 /// [selectedTodayColor] is the color, applied to the circle on the selected day, if it is today
 /// [todayColor] this is the color of the date of today
 /// [topRowIconColor] is the color of the icons in the top bar
+/// [backgroundColor] is the color of the background
 /// [datePickerLightTheme] is a [ThemeData] object, that defines the light theme of the date picker.
 /// [datePickerDarkTheme] is a [ThemeData] object, that defines the dark theme of the date picker
 /// [todayButtonText] is a [String]. With this property you can set the caption of the today icon (button to navigate to today).
@@ -126,6 +127,8 @@ class Calendar extends StatefulWidget {
   final Color? selectedTodayColor;
   final Color? todayColor;
   final Color? topRowIconColor;
+  final Color? backgroundColor;
+
   final ThemeData? datePickerLightTheme;
   final ThemeData? datePickerDarkTheme;
   final String todayButtonText;
@@ -177,6 +180,7 @@ class Calendar extends StatefulWidget {
       this.selectedTodayColor,
       this.todayColor = Colors.blue,
       this.topRowIconColor = Colors.blue,
+      this.backgroundColor = Colors.transparent,
       this.datePickerLightTheme,
       this.datePickerDarkTheme,
       this.todayButtonText = 'Today',
@@ -553,66 +557,68 @@ class _CalendarState extends State<Calendar> {
       jumpDateIcon = Container();
     }
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            forceEventListView ? Container() : leftArrow ?? Container(),
-            widget.showEventListViewIcon
-                ? PlatformIconButton(
-                    onPressed: () {
-                      setState(() {
-                        forceEventListView = !forceEventListView;
-                        if (widget.onListViewStateChanged != null) {
-                          _didScroll = false;
-                          widget.onListViewStateChanged!(forceEventListView);
-                        }
-                      });
-                    },
-                    icon: Icon(
-                      Icons.list,
-                      color: widget.topRowIconColor,
-                    ),
-                  )
-                : Container(),
-            Expanded(
-                child: Container()), // Placeholder to balance the Row
-            forceEventListView ? Container() : jumpDateIcon ?? Container(),
-            forceEventListView ? Container() : rightArrow ?? Container(),
-          ],
-        ),
-        // Zentralisiertes Stack-Widget
-        GestureDetector(
-          child: Column(children: [
-            if (todayIcon != null) todayIcon!,
-            Text(
-              displayMonth,
-              style: widget.displayMonthTextStyle ??
-                  TextStyle(
-                    fontSize: 20.0,
-                  ),
-            ),
-          ]),
-            onTap: () {
-              if (widget.onTodayButtonPressed != null) {
-                widget.onTodayButtonPressed!(_selectedDate);
-              }
-              // TOday-Button should only trigger a reset to today, if the event list view is not showwn
-              // or if the event list is shown and the ScrollController is connected to the list view.
-              if (!forceEventListView ||
-                  (forceEventListView && _scrollController.hasClients)) {
-                resetToToday();
-              }
-            }
-        ),
-      ],
+    return Container(
+      color: widget.backgroundColor,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              forceEventListView ? Container() : leftArrow ?? Container(),
+              widget.showEventListViewIcon
+                  ? PlatformIconButton(
+                      onPressed: () {
+                        setState(() {
+                          forceEventListView = !forceEventListView;
+                          if (widget.onListViewStateChanged != null) {
+                            _didScroll = false;
+                            widget.onListViewStateChanged!(forceEventListView);
+                          }
+                        });
+                      },
+                      icon: Icon(
+                        Icons.list,
+                        color: widget.topRowIconColor,
+                      ),
+                    )
+                  : Container(),
+              Expanded(child: Container()), // Placeholder to balance the Row
+              forceEventListView ? Container() : jumpDateIcon ?? Container(),
+              forceEventListView ? Container() : rightArrow ?? Container(),
+            ],
+          ),
+          // Zentralisiertes Stack-Widget
+          GestureDetector(
+              child: Column(children: [
+                if (todayIcon != null) todayIcon!,
+                Text(
+                  displayMonth,
+                  style: widget.displayMonthTextStyle ??
+                      TextStyle(
+                        fontSize: 20.0,
+                      ),
+                ),
+              ]),
+              onTap: () {
+                if (widget.onTodayButtonPressed != null) {
+                  widget.onTodayButtonPressed!(_selectedDate);
+                }
+                // TOday-Button should only trigger a reset to today, if the event list view is not showwn
+                // or if the event list is shown and the ScrollController is connected to the list view.
+                if (!forceEventListView ||
+                    (forceEventListView && _scrollController.hasClients)) {
+                  resetToToday();
+                }
+              }),
+        ],
+      ),
     );
   }
 
   Widget get calendarGridView {
     return Container(
+      color: widget.backgroundColor,
       child: SimpleGestureDetector(
         onSwipeUp: _onSwipeUp,
         onSwipeDown: _onSwipeDown,
@@ -754,10 +760,12 @@ class _CalendarState extends State<Calendar> {
       return GestureDetector(
         onTap: toggleExpanded,
         child: Container(
-          color: widget.bottomBarColor ?? Color.fromRGBO(200, 200, 200, 0.2),
+          color: widget.backgroundColor ??
+              widget.bottomBarColor ??
+              Color.fromRGBO(200, 200, 200, 0.2),
           height: 40,
-          margin: EdgeInsets.only(top: 8.0),
-          padding: EdgeInsets.all(0),
+          //margin: EdgeInsets.only(top: 8.0),
+          //padding: EdgeInsets.all(0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
